@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FontLoader</title>
+
+    <style type="text/css" id="mti_fontface_302bdc21-ed11-4a0e-aa23-f1d05be7fd5a">
+
+        @font-face {
+            font-family: Montserrat-Thin;
+            src: url("./montserrat-thin-webfont.woff2") format('woff2'), url("./montserrat-thin-webfont.woff") format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "test formats";
+            src: url("./test.eot?#iefix");
+            src: url("./test.eot?#iefix") format("eot"), url("./test.ttf") format("truetype"), url("./test.svg#b2be45ad-0169-4c84-9fc9-66a0e9ebff0a") format("svg");
+        }
+
+        @font-face {
+            font-family: "Neue Helvetica W01";
+            font-style: normal;
+            font-weight: 300;
+        }
+
+        @font-face {
+            font-family: "Test";
+            font-style: normal;
+            font-weight: 400;
+            src: url("https://fast.fonts.net/dv2/14/946b2f3f-a9d7-47e4-9738-ee963004d697.woff2?d44f19a684109620e484157aa790e81873dc51ad974425e651f9d4e5e2beef410bca815abc498b6a0b15191918d41312fc13106f1c055c45fa1a78447a61856c98ce4e12f06c52bae1c882c4bc7281ccef50ebc882ce7316b44421d72e176c58f6eec79ef180ac087e5fcada7072efd2130005b304ada1300fba6f0d760341cf66cc&projectId=302bdc21-ed11-4a0e-aa23-f1d05be7fd5a") format('woff2');
+        }
+
+        @font-face {
+            font-family: "-%ç*&/%&((&))/&  sfdafaerw ç*";
+            font-style: normal;
+            font-weight: 500;
+            src: url("https://fast.fonts.net/dv2/14/108e1ff6-3205-4c92-9aa5-9abb2823fe92.woff2?d44f19a684109620e484157aa790e81873dc51ad974425e651f9d4e5e2beef410bca815abc498b6a0b15191918d41312fc13106f1c055c45fa1a78447a61856c98ce4e12f06c52bae1c882c4bc7281ccef50ebc882ce7316b44421d72e176c58f6eec79ef180ac087e5fcada7072efd2130005b304ada1300fba6f0d760341cf66cc&projectId=302bdc21-ed11-4a0e-aa23-f1d05be7fd5a") format('woff2');
+        }
+
+        @font-face {
+            font-family: "Bad url";
+            font-style: normal;
+            font-weight: 700;
+            src: url("https://dummy.com");
+        }
+
+        @font-face {
+            font-family: "Neue Helvetica W01";
+            font-style: normal;
+            font-weight: 800;
+            src: url("https://fast.fonts.net/dv2/14/dd7814bd-8abf-46c5-a4be-db0977de2cca.woff2?d44f19a684109620e484157aa790e81873dc51ad974425e651f9d4e5e2beef410bca815abc498b6a0b15191918d41312fc13106f1c055c45fa1a78447a61856c98ce4e12f06c52bae1c882c4bc7281ccef50ebc882ce7316b44421d72e176c58f6eec79ef180ac087e5fcada7072efd2130005b304ada1300fba6f0d760341cf66cc&projectId=302bdc21-ed11-4a0e-aa23-f1d05be7fd5a") format('woff2');
+        }
+
+        @font-face {
+            font-family: "neue helvetica w01";
+            font-style: normal;
+            font-weight: 900;
+            src: url("https://fast.fonts.net/dv2/14/bd8486cc-4614-412d-ba1d-15e1a7c9fada.woff2?d44f19a684109620e484157aa790e81873dc51ad974425e651f9d4e5e2beef410bca815abc498b6a0b15191918d41312fc13106f1c055c45fa1a78447a61856c98ce4e12f06c52bae1c882c4bc7281ccef50ebc882ce7316b44421d72e176c58f6eec79ef180ac087e5fcada7072efd2130005b304ada1300fba6f0d760341cf66cc&projectId=302bdc21-ed11-4a0e-aa23-f1d05be7fd5a") format('woff2');
+        }
+
+        body {
+            background: beige;
+        }
+
+        #dummy {
+            font-family: dummy;
+        }
+    </style>
+
+    <script src="../build/index.js"></script>
+    <script>
+        const config = {
+            classes: false,
+            monotype: {
+                projectId: '302bdc21-ed11-4a0e-aa23-f1d05be7fd5a',
+                loadAllFonts: true,
+            },
+            custom: {families: ['Montserrat-Thin']},
+        };
+
+        FontLoader.load(config);
+    </script>
+</head>
+<body>
+
+</body>
+</html>
