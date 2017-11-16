@@ -5,7 +5,7 @@ const config = {
     entry: ['./src/loader.js'],
     devtool: 'source-map',
     output: {
-        path: path.join(__dirname, 'build'),
+        path: path.join(__dirname, 'dist'),
         filename: 'index.js',
         library: 'FontLoader',
         libraryTarget: 'umd'
