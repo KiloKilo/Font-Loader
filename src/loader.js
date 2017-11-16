@@ -3,16 +3,16 @@ import WebFont from 'webfontloader'
 import fileType from 'file-type'
 import supportsWoff2 from 'woff2-feature-test'
 
-function load(config = {}, version = 0) {
+function load(config = {}, version = 0, log = false) {
     return new Promise((resolve, reject) => {
         const savedFonts = localStorage ? JSON.parse(localStorage.getItem('saved-fonts')) : null;
         const savedFontsVersion = localStorage ? localStorage.getItem('saved-fonts-version') : null;
         if (savedFonts && savedFonts.length && version.toString() === savedFontsVersion) {
-            console.log(`Get Fonts from Local Storage, Version ${savedFontsVersion}`);
+            log && console.log(`Get Fonts from Local Storage, Version ${savedFontsVersion}`);
             setFonts(savedFonts);
             resolve();
         } else {
-            console.log(`Load Fonts, Version ${version}`);
+            log && console.log(`Load Fonts, Version ${version}`);
             WebFont.load({
                 ...config, active: () => {
                     parseStyleTags(version);
