@@ -2,7 +2,7 @@
   "name": "font-loader",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "build/index.js",
   "scripts": {
     "dev": "webpack-dev-server --open",
     "build": "webpack"
