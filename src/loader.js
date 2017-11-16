@@ -24,9 +24,9 @@ function load(config = {}, version = 0, log = false) {
 }
 
 function parseStyleTags(version) {
-    const inlineStyleSheets = [...document.styleSheets].filter(tag => tag.href === null);
+    const styleSheets = [...document.styleSheets];
     let rules = [];
-    inlineStyleSheets.forEach(tag => rules.push(...tag.rules));
+    styleSheets.forEach(tag => rules.push(...tag.rules));
     rules = rules.filter(rule => rule instanceof CSSFontFaceRule);
     rules = [].concat(...rules.map(rule => parseRules(rule)));
     rules = rules.map(rule => setPreferedFont(rule));
