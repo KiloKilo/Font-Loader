@@ -1,8 +1,8 @@
 // import 'core-js/fn/object/assign'
 import WebFont from 'webfontloader'
 import fileType from 'file-type'
+import fileExtension from 'file-extension'
 import supportsWoff2 from 'woff2-feature-test'
-
 
 function load(config = {}) {
     const savedFonts = localStorage in window ? JSON.parse(localStorage.getItem('saved-fonts')) : null;
@@ -17,9 +17,10 @@ function parseStyleTags() {
     const inlineStyleSheets = [...document.styleSheets].filter(tag => tag.href === null);
     let rules = [];
     inlineStyleSheets.forEach(tag => rules.push(...tag.rules));
-    //TODO check if woff, or woff2 is supported
     rules = rules.filter(rule => rule instanceof CSSFontFaceRule);
     rules = [].concat(...rules.map(rule => parseRules(rule)));
+    console.log(rules);
+    rules = rules.filter(rule => setPreferedFont(rule));
     //TODO better check for empty or missing url arrays
     rules = rules.filter(rule => rule);
     const promises = rules.map(rule => loadFont(rule));
@@ -35,11 +36,46 @@ function onFontsLoaded(fonts) {
 }
 
 function parseRules(rule) {
+    const fonts = [];
     const nameRegex = /font-family:\s?['"]?(.*?)['"]?;/g;
-    const name = nameRegex.exec(rule.cssText);
     const urlRegex = /url\(["']?(\S*?)["']?\)/g;
-    const url = urlRegex.exec(rule.cssText);
-    return (name && name[1] && url && url[1]) ? {name: name[1], url: url[1]} : null;
+    const formatRegex = /format\(["']?(.*?)["']?\)/g;
+
+    const name = nameRegex.exec(rule.cssText);
+
+    if (!name || !name[1]) return null;
+
+    let url;
+    let format;
+    while ((url = urlRegex.exec(rule.cssText)) && (format = formatRegex.exec(rule.cssText))) {
+        fonts.push({
+            url: url[1],
+            format: format[1]
+        })
+    }
+
+    return {name: name[1], fonts};
+}
+
+function setPreferedFont(rule) {
+    const woff2 = rule.fonts.find(font => font.format === 'woff2');
+    if (supportsWoff2 && woff2) {
+        return {
+            name: rule.name,
+            url: woff2.url
+        }
+    }
+
+    const woff = rule.fonts.find(font => font.format === 'woff2');
+    if (woff) {
+        return {
+            name: rule.name,
+            url: woff.url
+        }
+    }
+
+    rule.fonts.forEach(font => console.warn(`${font.format} not supported`));
+    return null;
 }
 
 function loadFont({name, url}) {

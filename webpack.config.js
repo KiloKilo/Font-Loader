@@ -1,10 +1,10 @@
 const webpack = require('webpack');
+const path = require('path');
 
 const config = {
-    entry: [__dirname + '/src/loader.js'],
-    devtool: 'source-map',
+    entry: ['./src/loader.js'],
     output: {
-        path: __dirname + '/build',
+        path: path.join(__dirname, 'build'),
         filename: 'index.js',
         library: 'FontLoader',
         libraryTarget: 'umd'
@@ -20,7 +20,12 @@ const config = {
             }
         ],
     },
-
+    devServer: {
+        contentBase: path.join(__dirname, '/examples'),
+        publicPath: '/examples/',
+        stats: "errors-only",
+        port: 3000,
+    }
 };
 
 module.exports = config;
