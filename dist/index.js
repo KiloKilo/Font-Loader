@@ -274,28 +274,32 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 function load() {
     var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var version = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    var log = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
-    var savedFonts = localStorage ? JSON.parse(localStorage.getItem('saved-fonts')) : null;
-    var savedFontsVersion = localStorage ? localStorage.getItem('saved-fonts-version') : null;
-    if (savedFonts && savedFonts.length && version.toString() === savedFontsVersion) {
-        console.log('Get Fonts from Local Storage, Version ' + savedFontsVersion);
-        setFonts(savedFonts);
-    } else {
-        console.log('Load Fonts, Version ' + version);
-        _webfontloader2.default.load(Object.assign({}, config, { active: function active() {
-                return parseStyleTags(version);
-            } }));
-    }
+    return new Promise(function (resolve, reject) {
+        var savedFonts = localStorage ? JSON.parse(localStorage.getItem('saved-fonts')) : null;
+        var savedFontsVersion = localStorage ? localStorage.getItem('saved-fonts-version') : null;
+        if (savedFonts && savedFonts.length && version.toString() === savedFontsVersion) {
+            log && console.log('Get Fonts from Local Storage, Version ' + savedFontsVersion);
+            setFonts(savedFonts);
+            resolve();
+        } else {
+            log && console.log('Load Fonts, Version ' + version);
+            _webfontloader2.default.load(Object.assign({}, config, { active: function active() {
+                    parseStyleTags(version);
+                    resolve();
+                }
+            }));
+        }
+    });
 }
 
 function parseStyleTags(version) {
     var _ref;
 
-    var inlineStyleSheets = [].concat(_toConsumableArray(document.styleSheets)).filter(function (tag) {
-        return tag.href === null;
-    });
+    var styleSheets = [].concat(_toConsumableArray(document.styleSheets));
     var rules = [];
-    inlineStyleSheets.forEach(function (tag) {
+    styleSheets.forEach(function (tag) {
         var _rules;
 
         return (_rules = rules).push.apply(_rules, _toConsumableArray(tag.rules));
