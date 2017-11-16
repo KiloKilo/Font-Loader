@@ -1,37 +1,40 @@
-// import 'core-js/fn/object/assign'
+import 'core-js/fn/object/assign'
 import WebFont from 'webfontloader'
 import fileType from 'file-type'
-import fileExtension from 'file-extension'
 import supportsWoff2 from 'woff2-feature-test'
 
-function load(config = {}) {
-    const savedFonts = localStorage in window ? JSON.parse(localStorage.getItem('saved-fonts')) : null;
-    if (savedFonts && savedFonts.length) {
+function load(config = {}, version = 0) {
+    const savedFonts = localStorage ? JSON.parse(localStorage.getItem('saved-fonts')) : null;
+    const savedFontsVersion = localStorage ? localStorage.getItem('saved-fonts-version') : null;
+    if (savedFonts && savedFonts.length && version.toString() === savedFontsVersion) {
+        console.log(`Get Fonts from Local Storage, Version ${savedFontsVersion}`);
         setFonts(savedFonts);
     } else {
-        WebFont.load({...config, active: parseStyleTags});
+        console.log(`Load Fonts, Version ${version}`);
+        WebFont.load({...config, active: () => parseStyleTags(version)});
     }
 }
 
-function parseStyleTags() {
+function parseStyleTags(version) {
     const inlineStyleSheets = [...document.styleSheets].filter(tag => tag.href === null);
     let rules = [];
     inlineStyleSheets.forEach(tag => rules.push(...tag.rules));
     rules = rules.filter(rule => rule instanceof CSSFontFaceRule);
     rules = [].concat(...rules.map(rule => parseRules(rule)));
-    console.log(rules);
-    rules = rules.filter(rule => setPreferedFont(rule));
-    //TODO better check for empty or missing url arrays
+    rules = rules.map(rule => setPreferedFont(rule));
     rules = rules.filter(rule => rule);
     const promises = rules.map(rule => loadFont(rule));
-    Promise.all(promises).then(onFontsLoaded)
+    Promise.all(promises).then(fonts => onFontsLoaded(fonts, version));
 }
 
-function onFontsLoaded(fonts) {
+function onFontsLoaded(fonts, version) {
     const usedFonts = fonts.map(font => font.name);
-    Promise
+    return Promise
         .all(fonts.map(font => saveFont(font)))
-        .then(() => localStorage.setItem('saved-fonts', JSON.stringify(usedFonts)))
+        .then(() => {
+            localStorage.setItem('saved-fonts', JSON.stringify(usedFonts));
+            localStorage.setItem('saved-fonts-version', version);
+        })
         .catch(error => console.error(error));
 }
 
@@ -74,7 +77,7 @@ function setPreferedFont(rule) {
         }
     }
 
-    rule.fonts.forEach(font => console.warn(`${font.format} not supported`));
+    rule.fonts.forEach(font => console.warn(`Font format "${font.format}" is not supported`));
     return null;
 }
 

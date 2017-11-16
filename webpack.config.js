@@ -3,6 +3,7 @@ const path = require('path');
 
 const config = {
     entry: ['./src/loader.js'],
+    devtool: 'source-map',
     output: {
         path: path.join(__dirname, 'build'),
         filename: 'index.js',
@@ -21,7 +22,7 @@ const config = {
         ],
     },
     devServer: {
-        contentBase: path.join(__dirname, '/examples'),
+        contentBase: path.join(__dirname, 'examples'),
         publicPath: '/examples/',
         stats: "errors-only",
         port: 3000,
