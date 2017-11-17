@@ -24,7 +24,8 @@ function load(config = {}, version = 0, log = false) {
 }
 
 function parseStyleTags(version) {
-    const styleSheets = [...document.styleSheets];
+    const docStyleSheets = document.styleSheets;
+    const styleSheets = [...docStyleSheets];
     let rules = [];
     styleSheets.forEach(tag => rules.push(...tag.rules));
     rules = rules.filter(rule => rule instanceof CSSFontFaceRule);
@@ -65,7 +66,7 @@ function parseRules(rule) {
         })
     }
 
-    return {name: name[1], fonts};
+    return { name: name[1], fonts };
 }
 
 function setPreferedFont(rule) {
@@ -77,7 +78,7 @@ function setPreferedFont(rule) {
         }
     }
 
-    const woff = rule.fonts.find(font => font.format === 'woff2');
+    const woff = rule.fonts.find(font => font.format === 'woff');
     if (woff) {
         return {
             name: rule.name,
@@ -89,13 +90,13 @@ function setPreferedFont(rule) {
     return null;
 }
 
-function loadFont({name, url}) {
+function loadFont({ name, url }) {
     return new Promise((resolve, reject) => {
         fetch(url)
             .then(response => {
                 const reader = response.body.getReader();
-                reader.read().then(({done, value}) => {
-                    resolve({name, buffer: value});
+                reader.read().then(({ done, value }) => {
+                    resolve({ name, buffer: value });
                 });
             })
             .catch(error => console.error(error));
@@ -104,7 +105,7 @@ function loadFont({name, url}) {
 
 function saveFont(font) {
     return new Promise((resolve, reject) => {
-        const blob = new Blob([font.buffer], {type: fileType(font.buffer).mime});
+        const blob = new Blob([font.buffer], { type: fileType(font.buffer).mime });
         const reader = new FileReader();
         reader.onload = event => {
             const base64 = event.target.result;
@@ -131,4 +132,4 @@ function setStyleTag(base64String) {
     document.head.appendChild(style);
 }
 
-export {load};
+export { load };
