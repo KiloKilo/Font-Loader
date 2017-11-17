@@ -24,8 +24,9 @@ const config = {
     devServer: {
         contentBase: path.join(__dirname, 'examples'),
         publicPath: '/examples/',
-        stats: "errors-only",
+        stats: 'errors-only',
         port: 3000,
+        host: '0.0.0.0'
     }
 };
 
