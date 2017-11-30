@@ -136,13 +136,13 @@ function setFonts(savedFonts) {
 
 function readFont(font) {
     const base64String = localStorage.getItem(font);
-    setStyleTag(base64String);
+    setStyleTag(font, base64String);
 }
 
-function setStyleTag(base64String) {
+function setStyleTag(fontname, base64String) {
     const style = document.createElement('style');
     style.rel = 'stylesheet';
-    style.textContent = `@font-face {font-family: font-name;  src: url(${base64String});}`;
+    style.textContent = `@font-face {font-family: ${fontname};  src: url(${base64String});}`;
     document.head.appendChild(style);
 }
 
