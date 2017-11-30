@@ -1,4 +1,5 @@
 import 'core-js/fn/object/assign'
+import 'core-js/fn/array/from'
 import WebFont from 'webfontloader'
 import fileType from 'file-type'
 import supportsWoff2 from 'woff2-feature-test'
