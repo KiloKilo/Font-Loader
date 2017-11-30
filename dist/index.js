@@ -402,7 +402,8 @@ function loadFont(_ref2) {
                 resolve({ name: name, buffer: value });
             });
         }).catch(function (error) {
-            return console.error(error);
+            console.error(error);
+            reject(error);
         });
     });
 }
