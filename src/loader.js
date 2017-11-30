@@ -27,7 +27,9 @@ function parseStyleTags(version) {
     const docStyleSheets = document.styleSheets;
     const styleSheets = [...docStyleSheets];
     let rules = [];
-    styleSheets.forEach(tag => rules.push(...tag.rules));
+    styleSheets.forEach(tag => {
+        if (tag.rules) rules.push(...tag.rules)
+    });
     rules = rules.filter(rule => rule instanceof CSSFontFaceRule);
     rules = [].concat(...rules.map(rule => parseRules(rule)));
     rules = rules.map(rule => setPreferedFont(rule));
