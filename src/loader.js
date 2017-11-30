@@ -17,7 +17,7 @@ function load(config = {}, version = 0, log = false) {
                 ...config, active: () => {
                     parseStyleTags(version);
                     resolve();
-                }
+                },
             });
         }
     });
@@ -64,7 +64,7 @@ function parseRules(rule) {
     while ((url = urlRegex.exec(rule.cssText)) && (format = formatRegex.exec(rule.cssText))) {
         fonts.push({
             url: url[1],
-            format: format[1]
+            format: format[1],
         })
     }
 
@@ -76,7 +76,7 @@ function setPreferedFont(rule) {
     if (supportsWoff2 && woff2) {
         return {
             name: rule.name,
-            url: woff2.url
+            url: woff2.url,
         }
     }
 
@@ -84,7 +84,7 @@ function setPreferedFont(rule) {
     if (woff) {
         return {
             name: rule.name,
-            url: woff.url
+            url: woff.url,
         }
     }
 
@@ -95,14 +95,28 @@ function setPreferedFont(rule) {
 function loadFont({ name, url }) {
     return new Promise((resolve, reject) => {
         fetch(url)
+            .then(checkStatus)
             .then(response => {
                 const reader = response.body.getReader();
                 reader.read().then(({ done, value }) => {
                     resolve({ name, buffer: value });
                 });
             })
-            .catch(error => console.error(error));
+            .catch(error => {
+                console.error(error);
+                reject(error);
+            });
     })
+}
+
+function checkStatus(res) {
+    if (res.status >= 200 && res.status < 400) {
+        return res
+    }
+
+    const err = new Error(res.statusText);
+    err.response = res;
+    throw err;
 }
 
 function saveFont(font) {

@@ -303,8 +303,7 @@ function parseStyleTags(version) {
     styleSheets.forEach(function (tag) {
         var _rules;
 
-        if (!tag.rules) return;
-        (_rules = rules).push.apply(_rules, _toConsumableArray(tag.rules));
+        if (tag.rules) (_rules = rules).push.apply(_rules, _toConsumableArray(tag.rules));
     });
     rules = rules.filter(function (rule) {
         return rule instanceof CSSFontFaceRule;
@@ -394,7 +393,7 @@ function loadFont(_ref2) {
         url = _ref2.url;
 
     return new Promise(function (resolve, reject) {
-        fetch(url).then(function (response) {
+        fetch(url).then(checkStatus).then(function (response) {
             var reader = response.body.getReader();
             reader.read().then(function (_ref3) {
                 var done = _ref3.done,
@@ -406,6 +405,16 @@ function loadFont(_ref2) {
             return console.error(error);
         });
     });
+}
+
+function checkStatus(res) {
+    if (res.status >= 200 && res.status < 400) {
+        return res;
+    }
+
+    var err = new Error(res.statusText);
+    err.response = res;
+    throw err;
 }
 
 function saveFont(font) {
