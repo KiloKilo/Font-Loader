@@ -34,14 +34,15 @@ function parseStyleTags(version) {
     rules = [].concat(...rules.map(rule => parseRules(rule)));
     rules = rules.map(rule => setPreferedFont(rule));
     rules = rules.filter(rule => rule);
-    const promises = rules.map(rule => loadFont(rule));
+    const promises = rules.map(rule => loadFont(rule).catch(error => undefined));
     Promise.all(promises).then(fonts => onFontsLoaded(fonts, version));
 }
 
 function onFontsLoaded(fonts, version) {
-    const usedFonts = fonts.map(font => font.name);
+    const filteredFonts = fonts.filter(font => !!font);
+    const usedFonts = filteredFonts.map(font => font.name);
     return Promise
-        .all(fonts.map(font => saveFont(font)))
+        .all(filteredFonts.map(font => saveFont(font)))
         .then(() => {
             localStorage.setItem('saved-fonts', JSON.stringify(usedFonts));
             localStorage.setItem('saved-fonts-version', version);
@@ -102,10 +103,7 @@ function loadFont({ name, url }) {
                     resolve({ name, buffer: value });
                 });
             })
-            .catch(error => {
-                console.error(error);
-                reject(error);
-            });
+            .catch(error => reject(error));
     })
 }
 

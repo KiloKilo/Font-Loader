@@ -318,7 +318,9 @@ function parseStyleTags(version) {
         return rule;
     });
     var promises = rules.map(function (rule) {
-        return loadFont(rule);
+        return loadFont(rule).catch(function (error) {
+            return undefined;
+        });
     });
     Promise.all(promises).then(function (fonts) {
         return onFontsLoaded(fonts, version);
@@ -326,10 +328,13 @@ function parseStyleTags(version) {
 }
 
 function onFontsLoaded(fonts, version) {
-    var usedFonts = fonts.map(function (font) {
+    var filteredFonts = fonts.filter(function (font) {
+        return !!font;
+    });
+    var usedFonts = filteredFonts.map(function (font) {
         return font.name;
     });
-    return Promise.all(fonts.map(function (font) {
+    return Promise.all(filteredFonts.map(function (font) {
         return saveFont(font);
     })).then(function () {
         localStorage.setItem('saved-fonts', JSON.stringify(usedFonts));
@@ -402,8 +407,7 @@ function loadFont(_ref2) {
                 resolve({ name: name, buffer: value });
             });
         }).catch(function (error) {
-            console.error(error);
-            reject(error);
+            return reject(error);
         });
     });
 }
