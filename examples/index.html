@@ -46,7 +46,14 @@
             font-family: "Bad url";
             font-style: normal;
             font-weight: 700;
-            src: url("https://dummy.com");
+            src: url("https://dummy.com") format('woff2');
+        }
+
+        @font-face {
+            font-family: "wrong type";
+            font-style: normal;
+            font-weight: 700;
+            src: url("./test.eot") format('woff2');
         }
 
         @font-face {
@@ -85,10 +92,10 @@
                 projectId: '302bdc21-ed11-4a0e-aa23-f1d05be7fd5a',
                 loadAllFonts: true,
             },
-            custom: {families: ['Montserrat-Thin']},
+            custom: {families: ['Montserrat-Thin', 'wrong type']},
         };
 
-        FontLoader.load(config, 0, true);
+        FontLoader.load(config, Date.now(), true);
     </script>
 </head>
 <body>

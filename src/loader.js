@@ -34,16 +34,18 @@ function parseStyleTags(version) {
     rules = [].concat(...rules.map(rule => parseRules(rule)));
     rules = rules.map(rule => setPreferedFont(rule));
     rules = rules.filter(rule => rule);
-    const promises = rules.map(rule => loadFont(rule).catch(error => undefined));
-    Promise.all(promises).then(fonts => onFontsLoaded(fonts, version));
+    Promise
+        .all(rules.map(rule => loadFont(rule).catch(() => undefined)))
+        .then(fonts => fonts.filter(font => !!font))
+        .then(fonts => onFontsLoaded(fonts, version));
 }
 
 function onFontsLoaded(fonts, version) {
-    const filteredFonts = fonts.filter(font => !!font);
-    const usedFonts = filteredFonts.map(font => font.name);
     return Promise
-        .all(filteredFonts.map(font => saveFont(font)))
+        .all(fonts.map(font => saveFont(font).catch(() => undefined)))
+        .then(fonts => fonts.filter(font => !!font))
         .then(() => {
+            const usedFonts = fonts.map(font => font.name);
             localStorage.setItem('saved-fonts', JSON.stringify(usedFonts));
             localStorage.setItem('saved-fonts-version', version);
         })
@@ -130,12 +132,18 @@ function checkStatus(res) {
 function saveFont(font) {
     return new Promise((resolve, reject) => {
         const blob = new Blob([font.buffer], {type: fileType(font.buffer).mime});
+        if (!font.buffer || !fileType(font.buffer).mime) {
+            reject(new Error('buffer or mimetype is undefined'));
+        }
+
         const reader = new FileReader();
+        reader.onerror = error => reject(error);
         reader.onload = event => {
             const base64 = event.target.result;
             localStorage.setItem(font.name, base64);
             resolve();
         };
+
         reader.readAsDataURL(blob);
     });
 }
