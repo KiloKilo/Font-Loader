@@ -85,13 +85,18 @@
                 projectId: '302bdc21-ed11-4a0e-aa23-f1d05be7fd5a',
                 loadAllFonts: true,
             },
-            custom: { families: ['Montserrat-Thin'] },
+            custom: {families: ['Montserrat-Thin']},
         };
 
-        FontLoader.load(config, 0.1, true);
+        FontLoader.load(config, 0, true);
     </script>
 </head>
 <body>
-    <p class="test-neue-helvetica-w01">Neue Helvetica W01</p>
+<p class="test-neue-helvetica-w01" style="font-weight: 700;">Neue Helvetica W01, weight:700</p>
+<p class="test-neue-helvetica-w01" style="font-weight: 500;">Neue Helvetica W01, weight:500</p>
+<p class="test-neue-helvetica-w01" style="font-weight: 400;">Neue Helvetica W01, weight:400</p>
+<p class="test-neue-helvetica-w01" style="font-weight: 900;">Neue Helvetica W01, weight:900</p>
+<p class="test-neue-helvetica-w01" style="font-weight: 300;">Neue Helvetica W01, weight:300</p>
+<p class="test-neue-helvetica-w01" style="font-weight: 800;">Neue Helvetica W01, weight:800</p>
 </body>
 </html>
