@@ -1,13 +1,16 @@
-import 'core-js/fn/object/assign'
 import WebFont from 'webfontloader'
 import fileType from 'file-type'
 import supportsWoff2 from 'woff2-feature-test'
 
 function load(config = {}, version = 0, log = false) {
+    const support = 'ReadableStream' in window && typeof Object.assign === 'function';
+
+    if (!support) return loadWebFonts(config);
+
     return new Promise((resolve, reject) => {
-        const savedFonts = localStorage ? JSON.parse(localStorage.getItem('saved-fonts')) : null;
-        const savedFontsVersion = localStorage ? localStorage.getItem('saved-fonts-version') : null;
-        if (savedFonts && savedFonts.length && version.toString() === savedFontsVersion) {
+    const savedFonts = localStorage ? JSON.parse(localStorage.getItem('saved-fonts')) : null;
+    const savedFontsVersion = localStorage ? localStorage.getItem('saved-fonts-version') : null;
+        if (support && savedFonts && savedFonts.length && version.toString() === savedFontsVersion) {
             log && console.log(`Get Fonts from Local Storage, Version ${savedFontsVersion}`);
             setFonts(savedFonts);
             resolve();
@@ -20,6 +23,15 @@ function load(config = {}, version = 0, log = false) {
                 },
             });
         }
+    });
+}
+
+function loadWebFonts(config) {
+    return new Promise((resolve, reject) => {
+        WebFont.load({
+            ...config,
+            active: resolve
+        });
     });
 }
 
