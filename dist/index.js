@@ -253,6 +253,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.load = undefined;
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 __webpack_require__(14);
 
 var _webfontloader = __webpack_require__(39);
@@ -317,26 +319,32 @@ function parseStyleTags(version) {
     rules = rules.filter(function (rule) {
         return rule;
     });
-    var promises = rules.map(function (rule) {
-        return loadFont(rule).catch(function (error) {
+    Promise.all(rules.map(function (rule) {
+        return loadFont(rule).catch(function () {
             return undefined;
         });
-    });
-    Promise.all(promises).then(function (fonts) {
+    })).then(function (fonts) {
+        return fonts.filter(function (font) {
+            return !!font;
+        });
+    }).then(function (fonts) {
         return onFontsLoaded(fonts, version);
     });
 }
 
 function onFontsLoaded(fonts, version) {
-    var filteredFonts = fonts.filter(function (font) {
-        return !!font;
-    });
-    var usedFonts = filteredFonts.map(function (font) {
-        return font.name;
-    });
-    return Promise.all(filteredFonts.map(function (font) {
-        return saveFont(font);
-    })).then(function () {
+    return Promise.all(fonts.map(function (font) {
+        return saveFont(font).catch(function () {
+            return undefined;
+        });
+    })).then(function (fonts) {
+        return fonts.filter(function (font) {
+            return !!font;
+        });
+    }).then(function () {
+        var usedFonts = fonts.map(function (font) {
+            return font.name;
+        });
         localStorage.setItem('saved-fonts', JSON.stringify(usedFonts));
         localStorage.setItem('saved-fonts-version', version);
     }).catch(function (error) {
@@ -347,6 +355,8 @@ function onFontsLoaded(fonts, version) {
 function parseRules(rule) {
     var fonts = [];
     var nameRegex = /font-family:\s?['"]?(.*?)['"]?;/g;
+    var weightRegex = /font-weight:\s?['"]?(.*?)['"]?;/g;
+    var styleRegex = /font-style:\s?['"]?(.*?)['"]?;/g;
     var urlRegex = /url\(["']?(\S*?)["']?\)/g;
     var formatRegex = /format\(["']?(.*?)["']?\)/g;
 
@@ -357,9 +367,13 @@ function parseRules(rule) {
     var url = void 0;
     var format = void 0;
     while ((url = urlRegex.exec(rule.cssText)) && (format = formatRegex.exec(rule.cssText))) {
+        var weight = weightRegex.exec(rule.cssText);
+        var style = styleRegex.exec(rule.cssText);
         fonts.push({
             url: url[1],
-            format: format[1]
+            format: format[1],
+            weight: weight ? weight[1] : 'normal',
+            style: style ? style[1] : 'normal'
         });
     }
 
@@ -372,7 +386,7 @@ function setPreferedFont(rule) {
     });
     if (_woff2FeatureTest2.default && woff2) {
         return {
-            name: rule.name,
+            name: addWeightAndStyleToName(rule, woff2),
             url: woff2.url
         };
     }
@@ -382,7 +396,7 @@ function setPreferedFont(rule) {
     });
     if (woff) {
         return {
-            name: rule.name,
+            name: addWeightAndStyleToName(rule, woff),
             url: woff.url
         };
     }
@@ -391,6 +405,10 @@ function setPreferedFont(rule) {
         return console.warn('Font format "' + font.format + '" is not supported');
     });
     return null;
+}
+
+function addWeightAndStyleToName(rule, font) {
+    return rule.name + ';' + font.weight + ';' + font.style;
 }
 
 function loadFont(_ref2) {
@@ -425,12 +443,20 @@ function checkStatus(res) {
 function saveFont(font) {
     return new Promise(function (resolve, reject) {
         var blob = new Blob([font.buffer], { type: (0, _fileType2.default)(font.buffer).mime });
+        if (!font.buffer || !(0, _fileType2.default)(font.buffer).mime) {
+            reject(new Error('buffer or mimetype is undefined'));
+        }
+
         var reader = new FileReader();
+        reader.onerror = function (error) {
+            return reject(error);
+        };
         reader.onload = function (event) {
             var base64 = event.target.result;
             localStorage.setItem(font.name, base64);
             resolve();
         };
+
         reader.readAsDataURL(blob);
     });
 }
@@ -446,11 +472,17 @@ function readFont(font) {
     setStyleTag(font, base64String);
 }
 
-function setStyleTag(fontname, base64String) {
-    var style = document.createElement('style');
-    style.rel = 'stylesheet';
-    style.textContent = '@font-face {font-family: ' + fontname + ';  src: url(' + base64String + ');}';
-    document.head.appendChild(style);
+function setStyleTag(font, base64String) {
+    var _font$split = font.split(';'),
+        _font$split2 = _slicedToArray(_font$split, 3),
+        name = _font$split2[0],
+        weight = _font$split2[1],
+        style = _font$split2[2];
+
+    var styleTag = document.createElement('style');
+    styleTag.rel = 'stylesheet';
+    styleTag.textContent = '@font-face {font-family: ' + name + '; font-weight: ' + weight + '; font-style: ' + style + '; src: url(' + base64String + ');}';
+    document.head.appendChild(styleTag);
 }
 
 exports.load = load;
@@ -1323,28 +1355,24 @@ module.exports = function (input) {
 		return null;
 	}
 
-	var check = function check(header, options) {
-		options = Object.assign({
+	var check = function check(header, opts) {
+		opts = Object.assign({
 			offset: 0
-		}, options);
+		}, opts);
 
 		for (var i = 0; i < header.length; i++) {
 			// If a bitmask is set
-			if (options.mask) {
+			if (opts.mask) {
 				// If header doesn't equal `buf` with bits masked off
-				if (header[i] !== (options.mask[i] & buf[i + options.offset])) {
+				if (header[i] !== (opts.mask[i] & buf[i + opts.offset])) {
 					return false;
 				}
-			} else if (header[i] !== buf[i + options.offset]) {
+			} else if (header[i] !== buf[i + opts.offset]) {
 				return false;
 			}
 		}
 
 		return true;
-	};
-
-	var checkString = function checkString(header, options) {
-		return check(toBytes(header), options);
 	};
 
 	if (check([0xFF, 0xD8, 0xFF])) {
@@ -1436,27 +1464,6 @@ module.exports = function (input) {
 			};
 		}
 
-		if (checkString('mimetypeapplication/vnd.oasis.opendocument.text', { offset: 30 })) {
-			return {
-				ext: 'odt',
-				mime: 'application/vnd.oasis.opendocument.text'
-			};
-		}
-
-		if (checkString('mimetypeapplication/vnd.oasis.opendocument.spreadsheet', { offset: 30 })) {
-			return {
-				ext: 'ods',
-				mime: 'application/vnd.oasis.opendocument.spreadsheet'
-			};
-		}
-
-		if (checkString('mimetypeapplication/vnd.oasis.opendocument.presentation', { offset: 30 })) {
-			return {
-				ext: 'odp',
-				mime: 'application/vnd.oasis.opendocument.presentation'
-			};
-		}
-
 		// https://github.com/file/file/blob/master/magic/Magdir/msooxml
 		if (check(oxmlContentTypes, { offset: 30 }) || check(oxmlRels, { offset: 30 })) {
 			var sliced = buf.subarray(4, 4 + 2000);
@@ -1474,21 +1481,21 @@ module.exports = function (input) {
 				if (header3Pos !== -1) {
 					var offset = 8 + header2Pos + header3Pos + 30;
 
-					if (checkString('word/', { offset: offset })) {
+					if (check(toBytes('word/'), { offset: offset })) {
 						return {
 							ext: 'docx',
 							mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 						};
 					}
 
-					if (checkString('ppt/', { offset: offset })) {
+					if (check(toBytes('ppt/'), { offset: offset })) {
 						return {
 							ext: 'pptx',
 							mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
 						};
 					}
 
-					if (checkString('xl/', { offset: offset })) {
+					if (check(toBytes('xl/'), { offset: offset })) {
 						return {
 							ext: 'xlsx',
 							mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -1967,13 +1974,6 @@ module.exports = function (input) {
 		return {
 			ext: 'aif',
 			mime: 'audio/aiff'
-		};
-	}
-
-	if (checkString('<?xml ')) {
-		return {
-			ext: 'xml',
-			mime: 'application/xml'
 		};
 	}
 
